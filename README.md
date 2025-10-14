@@ -1,5 +1,7 @@
 # FastAPI 学习项目
 
+**中文** | [English](README_EN.md)
+
 这是一个完整的 FastAPI 学习项目，旨在帮助你理解和掌握 FastAPI 框架的核心概念和最佳实践。
 
 ## 📋 项目概述
