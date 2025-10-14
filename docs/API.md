@@ -1,5 +1,7 @@
 # FastAPI 学习项目 - API 文档
 
+**中文** | [English](API_EN.md)
+
 ## 概述
 
 这是一个基于 FastAPI 的学习项目，实现了用户认证、文章管理和分类管理的完整 RESTful API。
