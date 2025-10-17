@@ -68,6 +68,7 @@ async def read_posts(skip: int = 0, limit: int = 100, db: Session = Depends(get_
     - db: 数据库会话依赖
     """
     posts = crud.get_posts(db, skip=skip, limit=limit)
+    
     return posts
 
 # 获取已发布的文章

@@ -6,10 +6,9 @@ SQLAlchemy是Python中最流行的ORM（对象关系映射）工具
 它允许我们使用Python类来定义数据库表，并提供了强大的查询功能
 """
 
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import create_engine, MetaData, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from databases import Database
 from decouple import config
 
 # 从环境变量获取数据库URL
@@ -37,11 +36,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # 创建基础模型类
 # 所有的数据库模型都将继承这个基类
 Base = declarative_base()
-
-# 创建异步数据库连接
-# databases库提供了异步数据库操作支持
-# 这对于高并发的Web应用非常重要
-database = Database(DATABASE_URL)
 
 # 创建元数据对象
 # 元数据包含了数据库表结构信息
@@ -75,8 +69,14 @@ async def connect_database():
     
     这个函数在应用启动时调用，建立数据库连接
     """
-    await database.connect()
-    print("✅ 数据库连接成功")
+    try:
+        # 测试数据库连接
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        print("✅ 数据库连接成功")
+    except Exception as e:
+        print(f"❌ 数据库连接失败: {e}")
+        raise
 
 async def disconnect_database():
     """
@@ -84,8 +84,12 @@ async def disconnect_database():
     
     这个函数在应用关闭时调用，清理数据库连接
     """
-    await database.disconnect()
-    print("❌ 数据库连接已断开")
+    try:
+        # 释放连接池资源
+        engine.dispose()
+        print("❌ 数据库连接已断开")
+    except Exception as e:
+        print(f"❌ 数据库断开失败: {e}")
 
 def create_tables():
     """
@@ -112,7 +116,6 @@ DATABASE_CONFIG = {
     "engine": engine,
     "session": SessionLocal,
     "base": Base,
-    "database": database,
     "metadata": metadata
 }
 
