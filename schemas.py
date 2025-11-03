@@ -9,7 +9,7 @@ Pydantic模式用于：
 4. API文档生成 - 自动生成OpenAPI文档
 """
 
-from pydantic import BaseModel, EmailStr, validator, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
@@ -26,7 +26,7 @@ class UserBase(BaseModel):
     email: EmailStr = Field(..., description="邮箱地址")
     full_name: Optional[str] = Field(None, max_length=100, description="全名，可选")
     
-    @validator('username')
+    @field_validator('username')
     def validate_username(cls, v):
         """
         用户名验证器
@@ -47,7 +47,7 @@ class UserCreate(UserBase):
     """
     password: str = Field(..., min_length=6, description="密码，至少6个字符")
     
-    @validator('password')
+    @field_validator('password')
     def validate_password(cls, v):
         """
         密码验证器
@@ -87,14 +87,8 @@ class User(UserBase):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        """
-        Pydantic配置类
-        
-        from_attributes=True 允许从SQLAlchemy模型创建Pydantic模型
-        这是连接ORM模型和API模式的关键
-        """
-        from_attributes = True
+    # Pydantic v2 配置
+    model_config = ConfigDict(from_attributes=True)
 
 class UserInDB(User):
     """
@@ -114,6 +108,7 @@ class PostBase(BaseModel):
     content: str = Field(..., min_length=1, description="文章内容")
     summary: Optional[str] = Field(None, max_length=500, description="文章摘要")
     is_published: bool = Field(False, description="是否发布")
+    category_id: Optional[int] = Field(None, description="分类ID")
 
 class PostCreate(PostBase):
     """
@@ -139,8 +134,7 @@ class Post(PostBase):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class PostWithAuthor(Post):
     """
@@ -183,8 +177,7 @@ class Category(CategoryBase):
     id: int
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # 认证相关模式
 

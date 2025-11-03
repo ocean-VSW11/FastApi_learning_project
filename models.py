@@ -89,22 +89,27 @@ class Post(Base):
     
     # 是否发布
     is_published = Column(Boolean, default=False)
-    
+
     # 外键字段 - 关联到用户表
     # ForeignKey 定义外键关系
     # ondelete="CASCADE" 表示当用户被删除时，相关文章也会被删除
     author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    # 外键字段 - 关联到分类表（可为空）
+    category_id = Column(Integer, ForeignKey("categories.id", ondelete="SET NULL"), nullable=True)
     
     # 创建时间
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # 更新时间
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    
+
     # 定义关系
     # relationship 定义了与User模型的关系
     # back_populates 必须与User模型中的对应关系名称匹配
     author = relationship("User", back_populates="posts")
+    # 文章与分类的关系
+    category = relationship("Category")
     
     def __repr__(self):
         return f"<Post(id={self.id}, title='{self.title}', author_id={self.author_id})>"

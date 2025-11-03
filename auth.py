@@ -13,7 +13,6 @@ JWT (JSON Web Token) 是一种开放标准，用于在各方之间安全地传�
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -54,8 +53,7 @@ def get_password_hash_bcrypt(password: str) -> str:
     hashed = bcrypt.hashpw(password_bytes, salt)
     return hashed.decode('utf-8')
 
-# 保留原有的passlib上下文作为备用
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# 统一使用 bcrypt，无需 passlib 依赖
 
 # 创建HTTP Bearer认证方案
 security = HTTPBearer()

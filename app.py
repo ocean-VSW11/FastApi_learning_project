@@ -498,7 +498,12 @@ async def refresh_token(
 
 # 获取所有用户
 @app.get("/users/", response_model=List[schemas.User], tags=["用户管理"])
-async def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_database_session)):
+async def read_users(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_database_session),
+    current_user: models.User = Depends(auth.get_current_superuser)
+):
     """
     获取用户列表
     
@@ -665,7 +670,13 @@ async def delete_user(
 
 # 用户搜索端点
 @app.get("/users/search/", response_model=List[schemas.User], tags=["用户管理"])
-async def search_users(q: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_database_session)):
+async def search_users(
+    q: str,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_database_session),
+    current_user: models.User = Depends(auth.get_current_superuser)
+):
     """
     搜索用户
     
