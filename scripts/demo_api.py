@@ -67,47 +67,80 @@ def demo_user_creation():
     print_response(response)
 
 def demo_auth_flow():
-    """演示认证流程"""
+    """演示认证流程并返回Token"""
     print_section("认证系统演示")
     
-    # 1. 尝试登录（会失败，因为没有用户）
-    print("\n1️⃣ 尝试登录（预期失败 - 用户不存在）")
     login_data = {
         "username": "admin",
         "password": "admin123"
     }
     response = requests.post(f"{BASE_URL}/auth/login", json=login_data)
-    print_response(response)
-    
-    # 2. 尝试访问需要认证的端点
-    print("\n2️⃣ 尝试访问需要认证的端点（预期失败）")
-    response = requests.get(f"{BASE_URL}/auth/me")
-    print_response(response)
+    print_response(response, title="登录响应")
+    data = response.json()
+    token = data.get("access_token")
+    return token
 
 def demo_posts_and_categories():
-    """演示文章和分类功能"""
+    """演示文章和分类功能（含认证）"""
     print_section("文章和分类管理演示")
     
-    # 1. 获取已发布文章
+    # 基本查询
     print("\n1️⃣ 获取已发布文章")
-    response = requests.get(f"{BASE_URL}/posts/published")
+    response = requests.get(f"{BASE_URL}/posts/published/")
     print_response(response)
     
-    # 2. 获取活跃分类
     print("\n2️⃣ 获取活跃分类")
-    response = requests.get(f"{BASE_URL}/categories/active")
+    response = requests.get(f"{BASE_URL}/categories/active/")
     print_response(response)
     
-    # 3. 尝试创建文章（会失败，需要认证）
-    print("\n3️⃣ 尝试创建文章（预期失败 - 需要认证）")
-    post_data = {
-        "title": "演示文章",
-        "content": "这是一篇演示文章的内容",
-        "category_id": 1,
+    # 管理操作需要Token
+    token = demo_auth_flow()
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # 3️⃣ 创建分类
+    cat_payload = {
+        "name": "测试分类_自动",
+        "description": "脚本创建用于验证",
+        "color": "#1122AA",
+        "is_active": True
+    }
+    response = requests.post(f"{BASE_URL}/categories/", json=cat_payload, headers=headers)
+    print_response(response, title="创建分类")
+    category = response.json()
+    category_id = category.get("id")
+    
+    # 4️⃣ 创建文章
+    post_payload = {
+        "title": "脚本验证文章",
+        "content": "用于一体化验证的文章内容",
+        "summary": "脚本摘要",
+        "is_published": True,
+        "category_id": category_id
+    }
+    response = requests.post(f"{BASE_URL}/posts/", json=post_payload, headers=headers)
+    print_response(response, title="创建文章")
+    post = response.json()
+    post_id = post.get("id")
+    
+    # 5️⃣ 更新文章
+    update_payload = {
+        "summary": "更新后的摘要",
         "is_published": True
     }
-    response = requests.post(f"{BASE_URL}/posts/", json=post_data)
-    print_response(response)
+    response = requests.put(f"{BASE_URL}/posts/{post_id}", json=update_payload, headers=headers)
+    print_response(response, title="更新文章")
+    
+    # 6️⃣ 搜索文章
+    response = requests.get(f"{BASE_URL}/posts/search/?q=脚本验证&limit=5")
+    print_response(response, title="搜索文章")
+    
+    # 7️⃣ 删除文章
+    response = requests.delete(f"{BASE_URL}/posts/{post_id}", headers=headers)
+    print_response(response, title="删除文章")
+    
+    # 8️⃣ 删除分类
+    response = requests.delete(f"{BASE_URL}/categories/{category_id}", headers=headers)
+    print_response(response, title="删除分类")
 
 def main():
     print("🚀 FastAPI学习项目功能演示")
@@ -120,9 +153,18 @@ def main():
         
         # 演示各个功能
         demo_basic_endpoints()
-        demo_user_creation()
-        demo_auth_flow()
         demo_posts_and_categories()
+        
+        # 生成 OpenAPI 3.0 JSON 并写入文件
+        try:
+            from app import app
+            import json
+            app.openapi_version = '3.0.3'
+            spec = app.openapi()
+            open('openapi.json', 'w').write(json.dumps(spec, ensure_ascii=False, indent=2))
+            print("\n✅ 已写入 openapi.json (OpenAPI 3.0.3)")
+        except Exception as e:
+            print(f"❌ 写入 openapi.json 失败: {e}")
         
         print_section("演示总结")
         print("✅ 基础端点正常工作")

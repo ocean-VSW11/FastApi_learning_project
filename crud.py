@@ -257,12 +257,11 @@ def update_post(db: Session, post_id: int, post_update: schemas.PostUpdate) -> O
     if not db_post:
         return None
     
-    update_data = post_update.dict(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_post, field, value)
-    
-    db.commit()
-    db.refresh(db_post)
+    update_data = {k: v for k, v in post_update.dict(exclude_unset=True).items() if v is not None}
+    if update_data:
+        db.query(models.Post).filter(models.Post.id == post_id).update(update_data, synchronize_session=False)
+        db.commit()
+        db.refresh(db_post)
     return db_post
 
 def delete_post(db: Session, post_id: int) -> bool:
@@ -380,6 +379,12 @@ def get_user_post_count(db: Session, user_id: int) -> int:
     获取指定用户的文章总数
     """
     return db.query(models.Post).filter(models.Post.author_id == user_id).count()
+
+def get_posts_count_by_category(db: Session, category_id: int) -> int:
+    """
+    获取指定分类下的文章总数
+    """
+    return db.query(models.Post).filter(models.Post.category_id == category_id).count()
 
 # CRUD操作最佳实践说明：
 

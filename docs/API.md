@@ -46,6 +46,10 @@
 - **描述**: 获取当前登录用户的信息
 - **认证**: 需要 Bearer Token
 - **响应**: 用户信息对象
+ - **请求头**:
+   ```
+   Authorization: Bearer <access_token>
+   ```
 
 ## 用户管理
 
@@ -53,6 +57,15 @@
 - **端点**: `POST /users/`
 - **描述**: 创建新用户（需要管理员权限）
 - **认证**: 需要 Bearer Token（管理员）
+ - **请求体**:
+   ```json
+   {
+     "username": "dev_user_001",
+     "email": "dev_user_001@example.com",
+     "full_name": "接口测试用户",
+     "password": "user123"
+   }
+   ```
 
 ### 获取用户列表
 - **端点**: `GET /users/`
@@ -81,9 +94,10 @@
 - **请求体**:
   ```json
   {
-    "title": "文章标题",
-    "content": "文章内容",
-    "summary": "文章摘要"
+    "title": "接口测试文章",
+    "content": "用于验证接口的文章内容",
+    "summary": "接口测试摘要",
+    "is_published": true
   }
   ```
 
@@ -95,11 +109,24 @@
 - **端点**: `PUT /posts/{post_id}`
 - **描述**: 更新文章信息
 - **认证**: 需要 Bearer Token（作者或管理员）
+ - **请求体**:
+   ```json
+   {
+     "title": "接口测试文章（更新）",
+     "summary": "更新后的摘要",
+     "is_published": true
+   }
+   ```
 
 ### 删除文章
 - **端点**: `DELETE /posts/{post_id}`
 - **描述**: 删除文章
 - **认证**: 需要 Bearer Token（作者或管理员）
+
+### 搜索文章
+- **端点**: `GET /posts/search/`
+- **描述**: 根据关键词搜索文章
+- **示例**: `GET /posts/search/?q=FastAPI&limit=5`
 
 ## 分类管理
 
@@ -111,16 +138,38 @@
 - **端点**: `POST /categories/`
 - **描述**: 创建新分类
 - **认证**: 需要 Bearer Token
+ - **请求体**:
+   ```json
+   {
+     "name": "测试分类_001",
+     "description": "用于接口测试",
+     "color": "#FF5733",
+     "is_active": true
+   }
+   ```
 
 ### 更新分类
 - **端点**: `PUT /categories/{category_id}`
 - **描述**: 更新分类信息
 - **认证**: 需要 Bearer Token
+ - **请求体**:
+   ```json
+   {
+     "description": "更新后的描述",
+     "color": "#00AA88",
+     "is_active": true
+   }
+   ```
 
 ### 删除分类
 - **端点**: `DELETE /categories/{category_id}`
 - **描述**: 删除分类
 - **认证**: 需要 Bearer Token
+
+### 搜索用户
+- **端点**: `GET /users/search/`
+- **描述**: 根据关键词搜索用户（需要管理员权限）
+- **示例**: `GET /users/search/?q=john&limit=5`
 
 ## 默认用户账户
 

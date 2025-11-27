@@ -61,6 +61,16 @@ class UserCreate(UserBase):
         if not any(c.isalpha() for c in v):
             raise ValueError('密码必须包含至少一个字母')
         return v
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "username": "dev_user_001",
+                "email": "dev_user_001@example.com",
+                "full_name": "接口测试用户",
+                "password": "user123"
+            }
+        ]
+    })
 
 class UserUpdate(BaseModel):
     """
@@ -73,6 +83,13 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = Field(None, max_length=100)
     is_active: Optional[bool] = None
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "full_name": "更新后的名字"
+            }
+        ]
+    })
 
 class User(UserBase):
     """
@@ -115,6 +132,23 @@ class PostCreate(PostBase):
     文章创建模式
     """
     pass  # 继承PostBase的所有字段
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "title": "接口测试文章",
+                "content": "用于验证接口的文章内容",
+                "summary": "接口测试摘要",
+                "is_published": True
+            },
+            {
+                "title": "带分类的文章",
+                "content": "含分类的文章内容",
+                "summary": "摘要",
+                "is_published": True,
+                "category_id": 1
+            }
+        ]
+    })
 
 class PostUpdate(BaseModel):
     """
@@ -124,6 +158,14 @@ class PostUpdate(BaseModel):
     content: Optional[str] = Field(None, min_length=1)
     summary: Optional[str] = Field(None, max_length=500)
     is_published: Optional[bool] = None
+    category_id: Optional[int] = None
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "summary": "更新后的摘要"
+            }
+        ]
+    })
 
 class Post(PostBase):
     """
@@ -134,7 +176,21 @@ class Post(PostBase):
     created_at: datetime
     updated_at: datetime
     
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, json_schema_extra={
+        "examples": [
+            {
+                "id": 8,
+                "title": "接口测试文章",
+                "content": "用于验证接口的文章内容",
+                "summary": "接口测试摘要",
+                "is_published": True,
+                "category_id": 1,
+                "author_id": 1,
+                "created_at": "2025-11-25T09:50:57",
+                "updated_at": "2025-11-25T09:50:57"
+            }
+        ]
+    })
 
 class PostWithAuthor(Post):
     """
@@ -160,6 +216,16 @@ class CategoryCreate(CategoryBase):
     分类创建模式
     """
     pass
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "name": "测试分类_示例",
+                "description": "用于验证",
+                "color": "#2288FF",
+                "is_active": True
+            }
+        ]
+    })
 
 class CategoryUpdate(BaseModel):
     """
@@ -169,6 +235,13 @@ class CategoryUpdate(BaseModel):
     description: Optional[str] = None
     color: Optional[str] = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
     is_active: Optional[bool] = None
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "color": "#007bff"
+            }
+        ]
+    })
 
 class Category(CategoryBase):
     """
@@ -177,7 +250,18 @@ class Category(CategoryBase):
     id: int
     created_at: datetime
     
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, json_schema_extra={
+        "examples": [
+            {
+                "id": 6,
+                "name": "测试分类_示例",
+                "description": "用于验证",
+                "color": "#2288FF",
+                "is_active": True,
+                "created_at": "2025-11-25T09:50:57"
+            }
+        ]
+    })
 
 # 认证相关模式
 
@@ -187,6 +271,14 @@ class Token(BaseModel):
     """
     access_token: str = Field(..., description="访问令牌")
     token_type: str = Field("bearer", description="令牌类型")
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "access_token": "<JWT_TOKEN>",
+                "token_type": "bearer"
+            }
+        ]
+    })
 
 class TokenData(BaseModel):
     """
@@ -202,6 +294,14 @@ class UserLogin(BaseModel):
     """
     username: str = Field(..., description="用户名或邮箱")
     password: str = Field(..., description="密码")
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "username": "admin",
+                "password": "admin123"
+            }
+        ]
+    })
 
 # 通用响应模式
 
@@ -210,6 +310,11 @@ class Message(BaseModel):
     通用消息响应模式
     """
     message: str = Field(..., description="响应消息")
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {"message": "操作成功"}
+        ]
+    })
 
 class PaginatedResponse(BaseModel):
     """
