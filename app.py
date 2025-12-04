@@ -7,7 +7,7 @@ FastAPI是一个现代、快速的Web框架，用于构建API
 """
 
 # 导入必要的模块
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Body, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -58,7 +58,11 @@ create_tables()
 
 # 获取所有文章
 @app.get("/posts/", response_model=List[schemas.Post], tags=["文章管理"])
-async def read_posts(skip: int = 0, limit: int = 100, db: Session = Depends(get_database_session)):
+async def read_posts(
+    skip: int = Query(0, ge=0, description="从第几条开始，必须≥0"),
+    limit: int = Query(100, ge=1, le=100, description="每页条数，1-100"),
+    db: Session = Depends(get_database_session)
+):
     """
     获取文章列表
     
@@ -73,7 +77,11 @@ async def read_posts(skip: int = 0, limit: int = 100, db: Session = Depends(get_
 
 # 获取已发布的文章
 @app.get("/posts/published/", response_model=List[schemas.Post], tags=["文章管理"])
-async def read_published_posts(skip: int = 0, limit: int = 100, db: Session = Depends(get_database_session)):
+async def read_published_posts(
+    skip: int = Query(0, ge=0, description="从第几条开始，必须≥0"),
+    limit: int = Query(100, ge=1, le=100, description="每页条数，1-100"),
+    db: Session = Depends(get_database_session)
+):
     """
     获取已发布的文章列表
     """
@@ -97,7 +105,30 @@ async def read_post(post_id: int, db: Session = Depends(get_database_session)):
 # 创建新文章
 @app.post("/posts/", response_model=schemas.Post, status_code=status.HTTP_201_CREATED, tags=["文章管理"])
 async def create_post(
-    post: schemas.PostCreate,
+    post: schemas.PostCreate = Body(
+        ...,
+        examples={
+            "simple": {
+                "summary": "不指定分类的文章",
+                "value": {
+                    "title": "接口测试文章",
+                    "content": "用于验证接口的文章内容",
+                    "summary": "接口测试摘要",
+                    "is_published": True
+                }
+            },
+            "withCategory": {
+                "summary": "指定分类的文章",
+                "value": {
+                    "title": "带分类的文章",
+                    "content": "含分类的文章内容",
+                    "summary": "摘要",
+                    "is_published": True,
+                    "category_id": 1
+                }
+            }
+        }
+    ),
     db: Session = Depends(get_database_session),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
@@ -130,7 +161,15 @@ async def create_post(
 @app.put("/posts/{post_id}", response_model=schemas.Post, tags=["文章管理"])
 async def update_post(
     post_id: int,
-    post_update: schemas.PostUpdate,
+    post_update: schemas.PostUpdate = Body(
+        ...,
+        examples={
+            "updateSummary": {
+                "summary": "更新摘要",
+                "value": {"summary": "更新后的摘要"}
+            }
+        }
+    ),
     db: Session = Depends(get_database_session),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
@@ -210,7 +249,12 @@ async def delete_post(
 
 # 搜索文章
 @app.get("/posts/search/", response_model=List[schemas.Post], tags=["文章管理"])
-async def search_posts(q: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_database_session)):
+async def search_posts(
+    q: str = Query(..., min_length=1, description="关键词，至少1个字符"),
+    skip: int = Query(0, ge=0, description="从第几条开始，必须≥0"),
+    limit: int = Query(100, ge=1, le=100, description="每页条数，1-100"),
+    db: Session = Depends(get_database_session)
+):
     """
     搜索文章
     """
@@ -254,7 +298,20 @@ async def read_category(category_id: int, db: Session = Depends(get_database_ses
 # 创建新分类（需要超级用户权限）
 @app.post("/categories/", response_model=schemas.Category, status_code=status.HTTP_201_CREATED, tags=["分类管理"])
 async def create_category(
-    category: schemas.CategoryCreate,
+    category: schemas.CategoryCreate = Body(
+        ...,
+        examples={
+            "basic": {
+                "summary": "创建分类示例",
+                "value": {
+                    "name": "api_example_category",
+                    "description": "用于验证",
+                    "color": "#2288FF",
+                    "is_active": True
+                }
+            }
+        }
+    ),
     db: Session = Depends(get_database_session),
     current_user: models.User = Depends(auth.get_current_superuser)
 ):
@@ -289,7 +346,15 @@ async def create_category(
 @app.put("/categories/{category_id}", response_model=schemas.Category, tags=["分类管理"])
 async def update_category(
     category_id: int,
-    category_update: schemas.CategoryUpdate,
+    category_update: schemas.CategoryUpdate = Body(
+        ...,
+        examples={
+            "updateColor": {
+                "summary": "更新颜色",
+                "value": {"color": "#007bff"}
+            }
+        }
+    ),
     db: Session = Depends(get_database_session),
     current_user: models.User = Depends(auth.get_current_superuser)
 ):
@@ -413,7 +478,15 @@ async def health_check():
 
 @app.post("/auth/login", response_model=dict, tags=["认证"])
 async def login(
-    user_credentials: schemas.UserLogin,
+    user_credentials: schemas.UserLogin = Body(
+        ...,
+        examples={
+            "admin": {
+                "summary": "管理员登录",
+                "value": {"username": "admin", "password": "admin123"}
+            }
+        }
+    ),
     db: Session = Depends(get_database_session)
 ):
     """
@@ -540,7 +613,20 @@ async def read_user(user_id: int, db: Session = Depends(get_database_session)):
 # 创建新用户（需要超级用户权限）
 @app.post("/users/", response_model=schemas.User, status_code=status.HTTP_201_CREATED, tags=["用户管理"])
 async def create_user(
-    user: schemas.UserCreate,
+    user: schemas.UserCreate = Body(
+        ...,
+        examples={
+            "basic": {
+                "summary": "创建用户示例",
+                "value": {
+                    "username": "dev_user_example",
+                    "email": "dev_user_example@example.com",
+                    "full_name": "接口测试用户",
+                    "password": "user123"
+                }
+            }
+        }
+    ),
     db: Session = Depends(get_database_session),
     current_user: models.User = Depends(auth.get_current_superuser)
 ):
@@ -584,7 +670,15 @@ async def create_user(
 @app.put("/users/{user_id}", response_model=schemas.User, tags=["用户管理"])
 async def update_user(
     user_id: int,
-    user_update: schemas.UserUpdate,
+    user_update: schemas.UserUpdate = Body(
+        ...,
+        examples={
+            "updateFullName": {
+                "summary": "更新用户姓名",
+                "value": {"full_name": "更新后的名字"}
+            }
+        }
+    ),
     db: Session = Depends(get_database_session),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):

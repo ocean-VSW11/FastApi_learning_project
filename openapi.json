@@ -21,9 +21,12 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "minimum": 0,
+              "description": "从第几条开始，必须≥0",
               "default": 0,
               "title": "Skip"
-            }
+            },
+            "description": "从第几条开始，必须≥0"
           },
           {
             "name": "limit",
@@ -31,9 +34,13 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "每页条数，1-100",
               "default": 100,
               "title": "Limit"
-            }
+            },
+            "description": "每页条数，1-100"
           }
         ],
         "responses": {
@@ -80,7 +87,28 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PostCreate"
+                "$ref": "#/components/schemas/PostCreate",
+                "examples": {
+                  "simple": {
+                    "summary": "不指定分类的文章",
+                    "value": {
+                      "title": "接口测试文章",
+                      "content": "用于验证接口的文章内容",
+                      "summary": "接口测试摘要",
+                      "is_published": true
+                    }
+                  },
+                  "withCategory": {
+                    "summary": "指定分类的文章",
+                    "value": {
+                      "title": "带分类的文章",
+                      "content": "含分类的文章内容",
+                      "summary": "摘要",
+                      "is_published": true,
+                      "category_id": 1
+                    }
+                  }
+                }
               }
             }
           }
@@ -124,9 +152,12 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "minimum": 0,
+              "description": "从第几条开始，必须≥0",
               "default": 0,
               "title": "Skip"
-            }
+            },
+            "description": "从第几条开始，必须≥0"
           },
           {
             "name": "limit",
@@ -134,9 +165,13 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "每页条数，1-100",
               "default": 100,
               "title": "Limit"
-            }
+            },
+            "description": "每页条数，1-100"
           }
         ],
         "responses": {
@@ -237,7 +272,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PostUpdate"
+                "$ref": "#/components/schemas/PostUpdate",
+                "examples": {
+                  "updateSummary": {
+                    "summary": "更新摘要",
+                    "value": {
+                      "summary": "更新后的摘要"
+                    }
+                  }
+                }
               }
             }
           }
@@ -327,8 +370,11 @@
             "required": true,
             "schema": {
               "type": "string",
+              "minLength": 1,
+              "description": "关键词，至少1个字符",
               "title": "Q"
-            }
+            },
+            "description": "关键词，至少1个字符"
           },
           {
             "name": "skip",
@@ -336,9 +382,12 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "minimum": 0,
+              "description": "从第几条开始，必须≥0",
               "default": 0,
               "title": "Skip"
-            }
+            },
+            "description": "从第几条开始，必须≥0"
           },
           {
             "name": "limit",
@@ -346,9 +395,13 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "每页条数，1-100",
               "default": 100,
               "title": "Limit"
-            }
+            },
+            "description": "每页条数，1-100"
           }
         ],
         "responses": {
@@ -453,7 +506,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CategoryCreate"
+                "$ref": "#/components/schemas/CategoryCreate",
+                "examples": {
+                  "basic": {
+                    "summary": "创建分类示例",
+                    "value": {
+                      "name": "api_example_category",
+                      "description": "用于验证",
+                      "color": "#2288FF",
+                      "is_active": true
+                    }
+                  }
+                }
               }
             }
           }
@@ -578,7 +642,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CategoryUpdate"
+                "$ref": "#/components/schemas/CategoryUpdate",
+                "examples": {
+                  "updateColor": {
+                    "summary": "更新颜色",
+                    "value": {
+                      "color": "#007bff"
+                    }
+                  }
+                }
               }
             }
           }
@@ -892,7 +964,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserCreate"
+                "$ref": "#/components/schemas/UserCreate",
+                "examples": {
+                  "basic": {
+                    "summary": "创建用户示例",
+                    "value": {
+                      "username": "dev_user_example",
+                      "email": "dev_user_example@example.com",
+                      "full_name": "接口测试用户",
+                      "password": "user123"
+                    }
+                  }
+                }
               }
             }
           }
@@ -991,7 +1074,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserUpdate"
+                "$ref": "#/components/schemas/UserUpdate",
+                "examples": {
+                  "updateFullName": {
+                    "summary": "更新用户姓名",
+                    "value": {
+                      "full_name": "更新后的名字"
+                    }
+                  }
+                }
               }
             }
           }
