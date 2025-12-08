@@ -8,6 +8,12 @@ FastAPI是一个现代、快速的Web框架，用于构建API
 
 # 导入必要的模块
 from fastapi import FastAPI, HTTPException, Depends, status, Body, Query
+from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
+import subprocess
+import urllib.request
+import urllib.error
+from sqlalchemy import text
+from typing import Dict
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -805,6 +811,98 @@ async def shutdown_event():
     """
     await disconnect_database()
     print("👋 FastAPI学习项目已关闭")
+
+# 安全漏洞演示端点
+@app.get("/vuln/xss", tags=["安全测试"], response_class=HTMLResponse)
+async def vuln_xss(q: str = Query("", description="XSS Payload", example="<script>alert(1)</script>")):
+    return f"<html><body><h1>XSS Echo</h1><div>{q}</div></body></html>"
+
+VULN_XSS_STORE: Dict[int, str] = {}
+VULN_XSS_NEXT_ID = 1
+
+@app.post("/vuln/xss/store", tags=["安全测试"])
+async def vuln_xss_store(payload: dict = Body(
+    ...,
+    examples={
+        "imgOnError": {
+            "summary": "IMG onerror",
+            "value": {"html": "<img src=x onerror=alert(2)>"}
+        },
+        "scriptTag": {
+            "summary": "Script tag",
+            "value": {"html": "<script>alert(1)</script>"}
+        }
+    }
+)):
+    global VULN_XSS_NEXT_ID
+    html = str(payload.get("html", ""))
+    VULN_XSS_STORE[VULN_XSS_NEXT_ID] = html
+    saved_id = VULN_XSS_NEXT_ID
+    VULN_XSS_NEXT_ID += 1
+    return {"id": saved_id}
+
+@app.get("/vuln/xss/view/{item_id}", tags=["安全测试"], response_class=HTMLResponse)
+async def vuln_xss_view(item_id: int):
+    html = VULN_XSS_STORE.get(item_id, "")
+    return f"<html><body><div>{html}</div></body></html>"
+
+@app.get("/vuln/sql", tags=["安全测试"])
+async def vuln_sql(q: str = Query("", description="SQL LIKE Payload", example="%' OR 1=1 --"), db: Session = Depends(get_database_session)):
+    sql = f"SELECT id, title, content FROM posts WHERE title LIKE '%{q}%'"
+    result = db.execute(text(sql))
+    rows = []
+    for row in result.fetchall():
+        rows.append({"id": row[0], "title": row[1], "content": row[2]})
+    return JSONResponse(rows)
+
+@app.get("/vuln/sql/by-id", tags=["安全测试"])
+async def vuln_sql_by_id(id: str = Query(..., description="ID Condition", example="1 OR 1=1"), db: Session = Depends(get_database_session)):
+    sql = f"SELECT id, title, content FROM posts WHERE id = {id}"
+    result = db.execute(text(sql))
+    rows = []
+    for row in result.fetchall():
+        rows.append({"id": row[0], "title": row[1], "content": row[2]})
+    return JSONResponse(rows)
+
+@app.get("/vuln/sql/order", tags=["安全测试"])
+async def vuln_sql_order(col: str = Query("id", description="ORDER BY Column", example="title DESC"), db: Session = Depends(get_database_session)):
+    sql = f"SELECT id, title, content FROM posts ORDER BY {col}"
+    result = db.execute(text(sql))
+    rows = []
+    for row in result.fetchall():
+        rows.append({"id": row[0], "title": row[1], "content": row[2]})
+    return JSONResponse(rows)
+
+@app.get("/vuln/exec", tags=["安全测试"], response_class=PlainTextResponse)
+async def vuln_exec(cmd: str = Query("echo hello", description="Shell Command", example="cat requirements.txt; whoami")):
+    try:
+        completed = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=3)
+        output = completed.stdout or completed.stderr
+        return output
+    except Exception as e:
+        return str(e)
+
+@app.get("/vuln/ssrf", tags=["安全测试"])
+async def vuln_ssrf(url: str = Query(..., description="Target URL", example="file:///etc/hosts")):
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "TestClient"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            content = resp.read(2048)
+            return {"status": resp.status, "length": len(content), "body": content.decode(errors="ignore")}
+    except urllib.error.HTTPError as e:
+        return JSONResponse({"status": e.code, "error": str(e)}, status_code=e.code)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.get("/vuln/ssrf/raw", tags=["安全测试"], response_class=PlainTextResponse)
+async def vuln_ssrf_raw(url: str = Query(..., description="Target URL", example="http://127.0.0.1:8001/health")):
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "RawClient"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            content = resp.read(4096)
+            return content.decode(errors="ignore")
+    except Exception as e:
+        return str(e)
 
 # 如果直接运行此文件，启动开发服务器
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.1.0",
   "info": {
     "title": "FastAPI学习项目",
     "description": "这是一个用于学习FastAPI框架的示例项目，包含了基础的CRUD操作、用户认证等功能",
@@ -1212,6 +1212,414 @@
                     "$ref": "#/components/schemas/User"
                   },
                   "title": "Response Search Users Users Search  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vuln/xss": {
+      "get": {
+        "tags": [
+          "安全测试"
+        ],
+        "summary": "Vuln Xss",
+        "operationId": "vuln_xss_vuln_xss_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "XSS Payload",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "XSS Payload",
+            "example": "<script>alert(1)</script>"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vuln/xss/store": {
+      "post": {
+        "tags": [
+          "安全测试"
+        ],
+        "summary": "Vuln Xss Store",
+        "operationId": "vuln_xss_store_vuln_xss_store_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "examples": {
+                  "imgOnError": {
+                    "summary": "IMG onerror",
+                    "value": {
+                      "html": "<img src=x onerror=alert(2)>"
+                    }
+                  },
+                  "scriptTag": {
+                    "summary": "Script tag",
+                    "value": {
+                      "html": "<script>alert(1)</script>"
+                    }
+                  }
+                },
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vuln/xss/view/{item_id}": {
+      "get": {
+        "tags": [
+          "安全测试"
+        ],
+        "summary": "Vuln Xss View",
+        "operationId": "vuln_xss_view_vuln_xss_view__item_id__get",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vuln/sql": {
+      "get": {
+        "tags": [
+          "安全测试"
+        ],
+        "summary": "Vuln Sql",
+        "operationId": "vuln_sql_vuln_sql_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "SQL LIKE Payload",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "SQL LIKE Payload",
+            "example": "%' OR 1=1 --"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vuln/sql/by-id": {
+      "get": {
+        "tags": [
+          "安全测试"
+        ],
+        "summary": "Vuln Sql By Id",
+        "operationId": "vuln_sql_by_id_vuln_sql_by_id_get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "ID Condition",
+              "title": "Id"
+            },
+            "description": "ID Condition",
+            "example": "1 OR 1=1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vuln/sql/order": {
+      "get": {
+        "tags": [
+          "安全测试"
+        ],
+        "summary": "Vuln Sql Order",
+        "operationId": "vuln_sql_order_vuln_sql_order_get",
+        "parameters": [
+          {
+            "name": "col",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "ORDER BY Column",
+              "default": "id",
+              "title": "Col"
+            },
+            "description": "ORDER BY Column",
+            "example": "title DESC"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vuln/exec": {
+      "get": {
+        "tags": [
+          "安全测试"
+        ],
+        "summary": "Vuln Exec",
+        "operationId": "vuln_exec_vuln_exec_get",
+        "parameters": [
+          {
+            "name": "cmd",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Shell Command",
+              "default": "echo hello",
+              "title": "Cmd"
+            },
+            "description": "Shell Command",
+            "example": "cat requirements.txt; whoami"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vuln/ssrf": {
+      "get": {
+        "tags": [
+          "安全测试"
+        ],
+        "summary": "Vuln Ssrf",
+        "operationId": "vuln_ssrf_vuln_ssrf_get",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Target URL",
+              "title": "Url"
+            },
+            "description": "Target URL",
+            "example": "file:///etc/hosts"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vuln/ssrf/raw": {
+      "get": {
+        "tags": [
+          "安全测试"
+        ],
+        "summary": "Vuln Ssrf Raw",
+        "operationId": "vuln_ssrf_raw_vuln_ssrf_raw_get",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Target URL",
+              "title": "Url"
+            },
+            "description": "Target URL",
+            "example": "http://127.0.0.1:8001/health"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
