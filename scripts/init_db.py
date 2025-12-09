@@ -4,6 +4,9 @@
 """
 
 import asyncio
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sqlalchemy.orm import Session
 from database import engine, get_database_session, create_tables, connect_database
 import models
